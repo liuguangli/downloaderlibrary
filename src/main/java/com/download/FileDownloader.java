@@ -224,34 +224,12 @@ public class FileDownloader {
 
 
     public void release() {
-        unregisterNetStateReceiver();
+        fileDownloader.unregisterNetStateReceiver();
         running = false;
+        this.context = null;
+        fileDownloader = null;
     }
 
-    /**
-     * 是否有网络连接
-     *
-     * @return
-     */
-    public  boolean isInternetConnected() {
-        boolean flag = false;
-
-        ConnectivityManager manager = (ConnectivityManager)
-                context.getSystemService(Context.CONNECTIVITY_SERVICE);
-        if (manager != null) {
-            NetworkInfo[] info = manager.getAllNetworkInfo();
-            if (info != null) {
-                int length = info.length;
-                for (int count = 0; count < length; count++) {
-                    if (info[count].getState() == NetworkInfo.State.CONNECTED) {
-                        flag = true;
-                        break;
-                    }
-                }
-            }
-        }
-        return flag;
-    }
     public boolean netWorkAble() {
         ConnectivityManager connectMgr = (ConnectivityManager) context.getSystemService(Activity.CONNECTIVITY_SERVICE);
         NetworkInfo mobNetInfo = connectMgr.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
