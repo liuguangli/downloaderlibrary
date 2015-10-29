@@ -21,8 +21,7 @@ import java.util.ArrayList;
 public class FileDownloader {
    
     public static final String TAG = FileDownloader.class.getSimpleName();
-    private final int THREAD_COUNT = 5;//线程数
-    private ArrayList<DownloadThread> threadList;//消费者线程集
+    public static int THREAD_COUNT = 5;
     private TaskCreatorThread mFileAdder;//生产者线程
     private DownloadListener mObserver;//状态观察者
     private Application context;
@@ -38,8 +37,6 @@ public class FileDownloader {
             if (netWorkAble()) {
                 LogUtil.d("Thread", "mBroadcastReceiver 说：终于有网络了。");
                 fileDownloader.onNetWorkResume();
-
-
             }
         }
     };
@@ -56,7 +53,6 @@ public class FileDownloader {
         return running;
     }
     public void registerNetStateReceiver() {
-
         IntentFilter filter = new IntentFilter();
         filter.addAction(ConnectivityManager.CONNECTIVITY_ACTION);
         context.registerReceiver(mBroadcastReceiver, filter);
@@ -102,17 +98,7 @@ public class FileDownloader {
     private void init() {
         running = true;
         mTaskList = new TaskList();
-        //初始化下载线程
-        threadList = new ArrayList<DownloadThread>();
-        for (int i = 0; i < THREAD_COUNT; i++) {
-            DownloadThread thread = new DownloadThread(this,mTaskList);
-            thread.start();
-            threadList.add(thread);
-        }
-
-
         createFolder();
-
         //启动生产者线程
         mFileAdder = new TaskCreatorThread(this,mTaskList);
         mFileAdder.setFolder(mFolder);
@@ -126,7 +112,6 @@ public class FileDownloader {
             file.mkdirs();
         }
     }
-
 
     /**
      * 设置观察者以观察下载进度
@@ -157,7 +142,7 @@ public class FileDownloader {
             }
             //通知观察者
         } else {
-            LogUtil.e(TAG,"has delete");
+            LogUtil.e(TAG, "has delete");
         }
     }
 

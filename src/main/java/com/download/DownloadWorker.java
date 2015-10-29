@@ -12,35 +12,19 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 
-class DownloadThread extends Thread {
+class DownloadWorker implements Runnable {
     private FileDownloader mFileDownloader;
-    private TaskList mTaskList;
-    public DownloadThread(FileDownloader fileDownloader, TaskList list) {
-        mTaskList = list;
+    private FileInfo.FileItem mTask;
+    public DownloadWorker(FileDownloader fileDownloader,FileInfo.FileItem task) {
+        mTask = task;
         mFileDownloader = fileDownloader;
     }
 
     @Override
     public void run() {
-        LogUtil.d("DownloadThread", "(7)run())");
-        while (mFileDownloader.isRunning()) {
-            FileInfo.FileItem item = mTaskList.getTaskItem();
-            if (item == null) {
-                _wait();
-            } else {
-                downloadApk(item);
-            }
-        }
-    }
-
-    private void _wait() {
-        synchronized (mTaskList) {
-            try {
-                Log.d("Thread", "Thread " + getId() + " 我太累了，休息会");
-                mTaskList.wait();
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+        LogUtil.d("DownloadWorker", "(7)run())");
+        if (mTask!=null){
+            downloadApk(mTask);
         }
     }
     private void downloadApk(FileInfo.FileItem item) {
@@ -131,14 +115,14 @@ class DownloadThread extends Thread {
             }
             if (!mFileDownloader.netWorkAble() || networkUnreachable) {
                 Log.e("Thread", "Thread " + getId() + " 无网络异常" + e.getMessage());
-                mTaskList.setApkInfoState(item.info.fileUrl, FileInfo.ERROR);
+                mTask.info.state =  FileInfo.ERROR;
                 mFileDownloader.error(item.info.fileUrl, DownloadListener.NETWORK_UNAVAILABLE_ERROR);
             } else {
                 Log.e("Thread", "Thread " + getId() + " 未知异常" + e.getMessage());
-                mTaskList.setApkInfoState(item.info.fileUrl, FileInfo.ERROR);
+                mTask.info.state =  FileInfo.ERROR;
                 mFileDownloader.error(item.info.fileUrl, DownloadListener.UNKNOW_ERROR);
             }
-            _wait();
+
         } finally {
             try {
                 if (is != null) is.close();
@@ -148,5 +132,9 @@ class DownloadThread extends Thread {
                 e.printStackTrace();
             }
         }
+    }
+
+    public long getId() {
+        return mTask._id;
     }
 }

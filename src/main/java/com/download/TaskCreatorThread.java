@@ -6,6 +6,9 @@ import java.io.RandomAccessFile;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * Created by liuguangli on 15/9/11.
@@ -14,12 +17,13 @@ public class TaskCreatorThread extends Thread {
     public static final String TAG =  "TaskCreatorThread";
     private FileDownloader mdownLoader;
     private TaskList mTaskList;
-
     private String folder;
     private String extend;
+    private ExecutorService executor;
     public TaskCreatorThread(FileDownloader downloader,TaskList taskList){
         mTaskList = taskList;
         mdownLoader = downloader;
+        executor = Executors.newFixedThreadPool(FileDownloader.THREAD_COUNT);
     }
 
     @Override
@@ -39,6 +43,7 @@ public class TaskCreatorThread extends Thread {
                 create(url);
             }
         }
+        executor.shutdown();
     }
 
 
@@ -72,8 +77,6 @@ public class TaskCreatorThread extends Thread {
         mdownLoader.update(url, fileInfo.filePath, 0);
         mTaskList.add(fileInfo);
 
-
-        notifyDownloadThreads();
     }
 
     private void createSubsection(FileInfo fileInfo) {
@@ -90,6 +93,7 @@ public class TaskCreatorThread extends Thread {
                 fileItem._id = i;
                 fileItem.endPos = fileItem.startPos + itemtLen - 1;
                 fileInfo.fileItemList.add(fileItem);
+                executor.submit(new DownloadWorker(mdownLoader, fileItem));
             }
             int length = fileInfo.fileSize % itemtLen;
             if (length > 0) {
@@ -99,16 +103,15 @@ public class TaskCreatorThread extends Thread {
                 fileItem.startPos = COUNT * itemtLen;
                 fileItem.endPos = fileItem.startPos + length - 1;
                 fileInfo.fileItemList.add(fileItem);
+                executor.submit(new DownloadWorker(mdownLoader,fileItem));
+
             }
         }
     }
 
-    private void notifyDownloadThreads(){
-        synchronized (mTaskList){
-            mTaskList.notifyAll();
-        }
 
-    }
+
+
     /**
      * 获取要下载的包大小
      */
