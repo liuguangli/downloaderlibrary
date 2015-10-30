@@ -43,7 +43,7 @@ public class TaskCreatorThread extends Thread {
                 create(url);
             }
         }
-        executor.shutdown();
+        stopExcutor();
     }
 
 
@@ -83,29 +83,41 @@ public class TaskCreatorThread extends Thread {
         if (fileInfo.fileSize > 0) {
             LogUtil.d(TAG, "(4)fileInfo._id > 0 && fileInfo.fileSize > 0");
             fileInfo.fileItemList = new ArrayList<FileInfo.FileItem>();
-            final int COUNT = 100;
-            int itemtLen = fileInfo.fileSize / COUNT;
-            for (int i = 0; i < COUNT; i++) {
+            int itemtLen = getSuitableSize();
+            int count = fileInfo.fileSize/itemtLen;
+            if (count < 1){
                 FileInfo.FileItem fileItem = new FileInfo.FileItem();
                 fileItem.info = fileInfo;
                 fileItem.infoId = fileInfo._id;
-                fileItem.startPos = i * itemtLen;
-                fileItem._id = i;
-                fileItem.endPos = fileItem.startPos + itemtLen - 1;
+                fileItem.startPos = 0;
+                fileItem._id = 0;
+                fileItem.endPos = fileItem.startPos + fileInfo.fileSize;
                 fileInfo.fileItemList.add(fileItem);
                 executor.submit(new DownloadWorker(mdownLoader, fileItem));
-            }
-            int length = fileInfo.fileSize % itemtLen;
-            if (length > 0) {
-                FileInfo.FileItem fileItem = new FileInfo.FileItem();
-                fileItem.info = fileInfo;
-                fileItem.infoId = fileInfo._id;
-                fileItem.startPos = COUNT * itemtLen;
-                fileItem.endPos = fileItem.startPos + length - 1;
-                fileInfo.fileItemList.add(fileItem);
-                executor.submit(new DownloadWorker(mdownLoader,fileItem));
+            } else {
+                for (int i = 0; i < count; i++) {
+                    FileInfo.FileItem fileItem = new FileInfo.FileItem();
+                    fileItem.info = fileInfo;
+                    fileItem.infoId = fileInfo._id;
+                    fileItem.startPos = i * itemtLen;
+                    fileItem._id = i;
+                    fileItem.endPos = fileItem.startPos + itemtLen - 1;
+                    fileInfo.fileItemList.add(fileItem);
+                    executor.submit(new DownloadWorker(mdownLoader, fileItem));
+                }
+                int length = fileInfo.fileSize % itemtLen;
+                if (length > 0) {
+                    FileInfo.FileItem fileItem = new FileInfo.FileItem();
+                    fileItem.info = fileInfo;
+                    fileItem.infoId = fileInfo._id;
+                    fileItem.startPos = count * itemtLen;
+                    fileItem.endPos = fileItem.startPos + length - 1;
+                    fileInfo.fileItemList.add(fileItem);
+                    executor.submit(new DownloadWorker(mdownLoader,fileItem));
 
+                }
             }
+
         }
     }
 
@@ -167,6 +179,17 @@ public class TaskCreatorThread extends Thread {
     }
     public void setExtend(String extend){
         this.extend = extend;
+    }
+
+    public int getSuitableSize() {
+        //这个大小的设置可以根据网络、服务器负责等信息综合考虑来确定。
+        return 1024*1024;
+    }
+
+    public void stopExcutor() {
+        if (!executor.isShutdown()){
+            executor.shutdown();
+        }
     }
 }
 

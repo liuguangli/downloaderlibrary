@@ -21,7 +21,7 @@ import java.util.ArrayList;
 public class FileDownloader {
    
     public static final String TAG = FileDownloader.class.getSimpleName();
-    public static int THREAD_COUNT = 5;
+    public static int THREAD_COUNT = 10;
     private TaskCreatorThread mFileAdder;//生产者线程
     private DownloadListener mObserver;//状态观察者
     private Application context;
@@ -176,6 +176,8 @@ public class FileDownloader {
             msg.obj = fileUrl;
             mObserver.sendMessage(msg);
         }
+        running = false;
+        mFileAdder.stopExcutor();
     }
 
 
