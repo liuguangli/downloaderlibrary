@@ -12,16 +12,12 @@ import android.os.Environment;
 import android.os.Message;
 import android.text.TextUtils;
 import android.util.Log;
-
-
-
 import java.io.File;
-import java.util.ArrayList;
 
 public class FileDownloader {
    
-    public static final String TAG = FileDownloader.class.getSimpleName();
-    public static int THREAD_COUNT = 10;
+    private static final String TAG = FileDownloader.class.getSimpleName();
+    static int THREAD_COUNT = 10;
     private TaskCreatorThread mFileAdder;//生产者线程
     private DownloadListener mObserver;//状态观察者
     private Application context;
@@ -100,7 +96,7 @@ public class FileDownloader {
         mTaskList = new TaskList();
         createFolder();
         //启动生产者线程
-        mFileAdder = new TaskCreatorThread(this,mTaskList);
+        mFileAdder = new TaskCreatorThread(this, mTaskList);
         mFileAdder.setFolder(mFolder);
         mFileAdder.setExtend(mExtend);
         mFileAdder.start();

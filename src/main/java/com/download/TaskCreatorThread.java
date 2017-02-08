@@ -1,5 +1,7 @@
 package com.download;
 
+import android.os.Debug;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
@@ -49,6 +51,7 @@ public class TaskCreatorThread extends Thread {
 
 
     private void create(String url){
+        Debug.startMethodTracing("callc");
         //之前没有下载
         FileInfo fileInfo = mTaskList.getFileInfoByUrl(url);
         if (fileInfo == null) {
@@ -76,6 +79,7 @@ public class TaskCreatorThread extends Thread {
         fileInfo.state = FileInfo.WAITING;
         mdownLoader.update(url, fileInfo.filePath, 0);
         mTaskList.add(fileInfo);
+        Debug.stopMethodTracing();
 
     }
 
@@ -183,7 +187,7 @@ public class TaskCreatorThread extends Thread {
 
     public int getSuitableSize() {
         //这个大小的设置可以根据网络、服务器负责等信息综合考虑来确定。
-        return 1024*1024;
+        return 1024 * 1024;
     }
 
     public void stopExcutor() {

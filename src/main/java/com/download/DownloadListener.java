@@ -46,7 +46,7 @@ public abstract class DownloadListener {
     /**
      * 方法在UI线程中被调用
      */
-    public abstract void onUpdate(String apkUrl,String file, int completeSize, int apkFileSize);
+    public abstract void onUpdate(String apkUrl, String file, int completeSize, int apkFileSize);
     public abstract void onComplete(String file);
 
     public abstract void onError(String apkUrl, int type, int arg2);
